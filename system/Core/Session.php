@@ -35,6 +35,10 @@ class Session {
             'httponly' => true,
             'samesite' => defined('SESSION_SAMESITE') ? SESSION_SAMESITE : 'Lax'
         ]);
+        if ((bool) Config::get('session.cleanup.enabled', false)
+            && function_exists('cleanup_stale_session_files')) {
+            cleanup_stale_session_files();
+        }
         return session_start(['use_strict_mode' => true, 'use_only_cookies' => true]);
     }
 

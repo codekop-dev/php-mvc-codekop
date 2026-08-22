@@ -13,7 +13,7 @@ $config = new \System\Config;
   | in alert on array() was taken in the folder app/Helper/alert.php
   |
  */
-$config::Helper(array(''));
+$config::Helper(array('session_cleanup'));
 
 /*
   |--------------------------------------------------------------------------

@@ -269,6 +269,10 @@ berbentuk array, lalu disinkronkan otomatis ke System\Config.
             'path' => ROOTPATH . 'storage/sessions',
             'cookie_path' => '/',
             'same_site' => 'Lax',
+            'idle_timeout' => 3 * 60 * 60,
+            'cleanup' => [
+                'enabled' => false,
+            ],
         ],
         'api' => [
             'jwt_secret' => '',
@@ -304,6 +308,13 @@ System\Config atau APP_CONFIG.
 
 Timezone default adalah Asia/Jakarta. PHP runtime juga menggunakan timezone
 tersebut untuk date dan timestamp aplikasi.
+
+`session.idle_timeout` adalah batas idle session dalam detik (contoh di atas:
+3 jam); middleware aplikasi harus memakainya untuk menerapkan logout otomatis.
+`session.cleanup.enabled` bersifat opsional dan default `false`. Jika diubah
+menjadi `true`, framework membersihkan file session `sess_*` yang lebih tua
+dari `session.gc_maxlifetime` saat session dimulai. File session yang sedang
+terkunci oleh request lain dilewati.
 
 ## Routing web dan API
 

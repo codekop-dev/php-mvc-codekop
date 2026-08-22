@@ -430,6 +430,10 @@ $appConfig = [
         'name' => 'codekop_session',
         'path' => ROOTPATH . 'storage/sessions',
         'cookie_path' => '/',
+        'idle_timeout' => 3 * 60 * 60,
+        'cleanup' => [
+            'enabled' => false,
+        ],
     ],
     'queue' => [
         'driver' => 'file',
@@ -438,8 +442,11 @@ $appConfig = [
 ];
 ```
 
-Session memakai strict mode, cookie `HttpOnly`, dan `SameSite`. Detail driver
-queue dibahas di tutorial Backend.
+Session memakai strict mode, cookie `HttpOnly`, dan `SameSite`. `idle_timeout`
+ditulis dalam detik dan dapat dipakai middleware aplikasi untuk aturan idle
+session. Cleanup file session bersifat opsional; ubah
+`session.cleanup.enabled` menjadi `true` untuk menjalankan cleanup stale
+session saat session dimulai. Detail driver queue dibahas di tutorial Backend.
 
 ## Tautan project
 

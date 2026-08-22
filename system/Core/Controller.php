@@ -33,27 +33,26 @@ class Controller
         $this->response = new Response();
     }
 
-    public function model(string $model): object
+    public function model($model)
     {
-        $class = str_contains($model, '\\') ? $model : 'App\\Models\\' . $model;
-        $relative = str_replace('App\\Models\\', '', $class);
+        $requested = ltrim((string) $model, '\\');
+        $class = str_starts_with($requested, 'App\\')
+            ? $requested
+            : 'App\\Models\\' . $requested;
         $shortName = basename(str_replace('\\', '/', $class));
-        $file = ROOTPATH . 'app/Models/' . str_replace('\\', '/', $relative) . '.php';
+        $modelPrefix = 'App\\Models\\';
+        $relativeClass = str_starts_with($class, $modelPrefix)
+            ? substr($class, strlen($modelPrefix))
+            : $shortName;
+        $file = ROOTPATH . 'app/Models/' . str_replace('\\', '/', $relativeClass) . '.php';
         if (!is_file($file)) {
             $file = ROOTPATH . 'app/Models/' . $shortName . '.php';
         }
-        if (!is_file($file)) {
-            throw new \RuntimeException('Model not found: ' . $model);
-        }
         require_once $file;
-
-        // Models may still use the legacy global-class format. The model file
-        // was loaded above, so class_exists must not invoke PSR-4 autoloading.
-        $resolvedClass = class_exists($class, false) ? $class : $shortName;
-        if (!class_exists($resolvedClass, false)) {
-            throw new \RuntimeException('Model class not found: ' . $model);
+        if (!class_exists($class) && class_exists((string) $model)) {
+            $class = (string) $model;
         }
-        return new $resolvedClass();
+        return new $class();
     }
 
 }

@@ -15,6 +15,12 @@ $appConfig = [
         'path' => ROOTPATH . 'storage/sessions',
         'cookie_path' => '/',
         'same_site' => 'Lax',
+        // Batas idle session dalam detik; middleware aplikasi dapat memakai aturan ini.
+        'idle_timeout' => 3 * 60 * 60,
+        // Opsional: true akan membersihkan file session stale saat session dimulai.
+        'cleanup' => [
+            'enabled' => false,
+        ],
     ],
     'api' => [
         'jwt_secret' => '',
