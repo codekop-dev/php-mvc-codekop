@@ -56,6 +56,11 @@
         .docs-markdown pre { overflow-x:auto; padding:1rem; border:1px solid #26354f; background:var(--docs-code); color:var(--docs-green); font-size:.88rem; line-height:1.65; white-space:pre; }
         .docs-markdown code { padding:.1rem .3rem; background:rgba(var(--rt-primary-rgb),.12); }
         .docs-markdown pre code { padding:0; background:transparent; }
+        .docs-table-wrap { max-width:100%; overflow-x:auto; margin:1rem 0; }
+        .docs-markdown table { border-collapse:collapse; width:100%; font-size:.9rem; }
+        .docs-markdown th, .docs-markdown td { padding:.55rem .75rem; border:1px solid var(--rt-border); text-align:left; vertical-align:top; }
+        .docs-markdown th { background:var(--rt-surface); font-weight:700; white-space:nowrap; }
+        .docs-markdown tbody tr:nth-child(even) { background:rgba(var(--rt-primary-rgb),.04); }
         .docs-footer { padding:2rem 0; border-top:1px solid var(--rt-border); color:var(--rt-muted); font-size:.85rem; text-align:center; }
         @media (max-width:560px) {
             .docs-shell { width:min(100% - 1rem, var(--docs-width)); }
@@ -173,6 +178,6 @@
         <a href="https://github.com/fauzan1892/php-mvc-codekop" target="_blank" rel="noopener noreferrer">GitHub</a>
     </div>
 </footer>
-<script src="../assets/documentation/docs.js?v=9" defer></script>
+<script src="../assets/documentation/docs.js?v=10" defer></script>
 </body>
 </html>

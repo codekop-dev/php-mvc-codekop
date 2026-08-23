@@ -55,6 +55,20 @@
         return html;
     };
 
+    const splitTableRow = (line) => {
+        let trimmed = line.trim();
+        if (trimmed.startsWith('|')) trimmed = trimmed.slice(1);
+        if (trimmed.endsWith('|')) trimmed = trimmed.slice(0, -1);
+        return trimmed.split('|').map((cell) => cell.trim());
+    };
+
+    const isTableSeparatorRow = (line) => {
+        const trimmed = line.trim();
+        if (!trimmed.includes('-') || !trimmed.includes('|')) return false;
+        const cells = splitTableRow(trimmed);
+        return cells.length > 0 && cells.every((cell) => /^:?-{1,}:?$/.test(cell));
+    };
+
     const markdownToHtml = (markdown) => {
         const lines = String(markdown).replaceAll('\r', '').split('\n');
         const output = [];
@@ -62,6 +76,9 @@
         let listType = null;
         let inCode = false;
         let code = [];
+        let inTable = false;
+        let tableRows = [];
+        let skipTableSeparator = false;
 
         const flushParagraph = () => {
             if (paragraph.length === 0) return;
@@ -79,17 +96,45 @@
             code = [];
             inCode = false;
         };
+        const closeTable = () => {
+            inTable = false;
+            if (tableRows.length === 0) return;
+            const [headerRow, ...bodyRows] = tableRows;
+            const head = headerRow.map((cell) => `<th>${inlineMarkdown(cell)}</th>`).join('');
+            const body = bodyRows.map((row) => `<tr>${row.map((cell) => `<td>${inlineMarkdown(cell)}</td>`).join('')}</tr>`).join('');
+            output.push(`<div class="docs-table-wrap"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>`);
+            tableRows = [];
+        };
 
-        lines.forEach((line) => {
+        lines.forEach((line, index) => {
             if (inCode) {
                 if (/^\s*```/.test(line)) closeCode();
                 else code.push(line);
                 return;
             }
+            if (inTable) {
+                if (skipTableSeparator) {
+                    skipTableSeparator = false;
+                    return;
+                }
+                if (line.trim() !== '' && line.includes('|')) {
+                    tableRows.push(splitTableRow(line));
+                    return;
+                }
+                closeTable();
+            }
             if (/^\s*```/.test(line)) {
                 flushParagraph();
                 closeList();
                 inCode = true;
+                return;
+            }
+            if (line.includes('|') && index + 1 < lines.length && isTableSeparatorRow(lines[index + 1])) {
+                flushParagraph();
+                closeList();
+                inTable = true;
+                skipTableSeparator = true;
+                tableRows = [splitTableRow(line)];
                 return;
             }
             const heading = line.match(/^(#{1,6})\s+(.+?)\s*#*$/);
@@ -137,6 +182,7 @@
         });
 
         if (inCode) closeCode();
+        if (inTable) closeTable();
         flushParagraph();
         closeList();
         return output.join('\n');
