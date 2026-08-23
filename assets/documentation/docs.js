@@ -5,6 +5,7 @@
         'tutorials/framework.md': 'Framework dan Mulai Cepat',
         'tutorials/backend.md': 'Backend: Queue, CRUD AI, dan RBAC',
         'tutorials/production.md': 'Production Aman, Security, dan Testing',
+        'tutorials/benchmark.md': 'Benchmark: PHP-FPM, FrankenPHP, Swoole, JIT',
     });
     const reader = document.getElementById('tutorial-reader');
     const title = document.getElementById('tutorial-reader-title');

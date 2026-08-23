@@ -1,0 +1,128 @@
+# Convenience compose file for manually trying ONE combination at a time
+# (PHP 8.4, JIT off by default). For the full runtime x version x JIT matrix,
+# use docker/benchmark/run-matrix.sh instead, which builds/runs/tears down
+# each combination sequentially so every run gets the full 2 CPU / 2GB RAM
+# budget on a modest host.
+#
+# `db` is an isolated benchmark-only MariaDB container seeded from
+# docker/benchmark/db/init.sql (a `penjualan`/transaksi-shaped table with
+# synthetic data) — it is NOT the real `estock` database and is not
+# resource-capped like the runtimes, since it's a shared dependency rather
+# than the thing being measured. GET /api/db/transaksi exercises it.
+#
+# Usage: docker compose -f docker/benchmark/docker-compose.yml up db php-fpm-nginx
+services:
+  db:
+    image: mariadb:11
+    environment:
+      MARIADB_DATABASE: codekop_bench
+      MARIADB_USER: codekop_bench
+      MARIADB_PASSWORD: codekop_bench
+      MARIADB_ROOT_PASSWORD: codekop_bench_root
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  php-fpm-apache:
+    build:
+      context: ../..
+      dockerfile: docker/benchmark/php-fpm-apache/Dockerfile
+      args:
+        PHP_VERSION: "8.4"
+    environment:
+      BENCH_JIT: "off"
+      DB_HOST: db
+      DB_NAME: codekop_bench
+      DB_USER: codekop_bench
+      DB_PASSWORD: codekop_bench
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "18081:80"
+    cpus: 2
+    mem_limit: 2g
+
+  php-fpm-nginx:
+    build:
+      context: ../..
+      dockerfile: docker/benchmark/php-fpm-nginx/Dockerfile
+      args:
+        PHP_VERSION: "8.4"
+    environment:
+      BENCH_JIT: "off"
+      DB_HOST: db
+      DB_NAME: codekop_bench
+      DB_USER: codekop_bench
+      DB_PASSWORD: codekop_bench
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "18082:80"
+    cpus: 2
+    mem_limit: 2g
+
+  frankenphp:
+    build:
+      context: ../..
+      dockerfile: docker/benchmark/frankenphp/Dockerfile
+      args:
+        PHP_VERSION: "8.4"
+    environment:
+      BENCH_JIT: "off"
+      DB_HOST: db
+      DB_NAME: codekop_bench
+      DB_USER: codekop_bench
+      DB_PASSWORD: codekop_bench
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "18083:80"
+    cpus: 2
+    mem_limit: 2g
+
+  frankenphp-worker:
+    build:
+      context: ../..
+      dockerfile: docker/benchmark/frankenphp-worker/Dockerfile
+      args:
+        PHP_VERSION: "8.4"
+    environment:
+      BENCH_JIT: "off"
+      DB_HOST: db
+      DB_NAME: codekop_bench
+      DB_USER: codekop_bench
+      DB_PASSWORD: codekop_bench
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "18084:80"
+    cpus: 2
+    mem_limit: 2g
+
+  swoole:
+    build:
+      context: ../..
+      dockerfile: docker/benchmark/swoole/Dockerfile
+      args:
+        PHP_VERSION: "8.4"
+    environment:
+      BENCH_JIT: "off"
+      DB_HOST: db
+      DB_NAME: codekop_bench
+      DB_USER: codekop_bench
+      DB_PASSWORD: codekop_bench
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "18085:80"
+    cpus: 2
+    mem_limit: 2g

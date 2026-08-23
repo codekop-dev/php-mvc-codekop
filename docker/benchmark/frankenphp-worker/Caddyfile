@@ -1,0 +1,73 @@
+{
+	frankenphp {
+		worker {
+			file /var/www/html/frankenphp-worker.php
+		}
+	}
+	admin off
+}
+
+:80 {
+	root * /var/www/html
+	# No `encode gzip` on purpose — see docker/benchmark/frankenphp/Caddyfile.
+
+	# Same deny rules as docker/benchmark/frankenphp/Caddyfile, checked
+	# BEFORE the static-file/worker split below.
+	@internal path /app/* /system/* /storage/* /database/* /vendor/* /.git/* /.agents/* /.codex/*
+	@hidden {
+		path_regexp ^/\.
+		not path /.well-known/*
+	}
+	@blocked_ext path_regexp \.(env|ini|log|sql|bak|dist|fla|psd|sh)$
+	@assets_exec path_regexp ^/assets/.*\.(php[0-9]?|phtml|phar|cgi|pl|py|sh)$
+	# No exception for frankenphp-worker.php: it must never be reachable by
+	# a direct client request (as source via file_server, or executed) —
+	# only the internal `rewrite` below may reach it, which happens in a
+	# later handle block and is never re-checked against this one.
+	@any_php path_regexp \.php$
+	# Mirrors the filename deny-list in the root .htaccess (composer.json/
+	# .lock, .env*, README/CHANGELOG/AGENTS.md, the *.conf.example files).
+	@meta_files path /.env* /composer.json /composer.lock /README.md /CHANGELOG.md /AGENTS.md /nginx.conf.example /apache2.conf.example
+
+	handle @internal {
+		respond 404
+	}
+	handle @hidden {
+		respond 404
+	}
+	handle @blocked_ext {
+		respond 404
+	}
+	handle @assets_exec {
+		respond 404
+	}
+	handle @any_php {
+		respond 404
+	}
+	handle @meta_files {
+		respond 404
+	}
+
+	# CRITICAL: php_server's own default fallback rewrites any non-static
+	# request to /index.php and executes THAT file classically — a
+	# different script path than the registered worker
+	# (/frankenphp-worker.php) — so without an explicit rewrite, the worker
+	# starts up and sits idle forever while every request silently runs in
+	# classic mode instead. Confirmed by testing: a deliberate `throw`
+	# placed at the top of the worker's request closure never fires without
+	# this; with it, the same throw fires immediately as expected.
+	#
+	# Real static files (assets/*, already past the deny checks above) must
+	# still be served directly rather than routed through the worker, so
+	# split on whether the request matches an existing file first.
+	@static {
+		file
+	}
+	handle @static {
+		file_server
+	}
+	handle {
+		rewrite * /frankenphp-worker.php
+		php_server
+	}
+}

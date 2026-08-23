@@ -1,56 +1,60 @@
-# Copy the server block into your Nginx site configuration and adjust PHP-FPM socket.
-# The document root must point to this project directory.
+# Contoh server block Nginx untuk Codekop POS.
+#
+# Salin ke konfigurasi site Nginx, lalu sesuaikan:
+# - root
+# - fastcgi_pass (socket PHP-FPM)
+# - server_name
+#
+# File ini tidak otomatis dipakai oleh Nginx.
+
 server {
     listen 80;
-    server_name example.test;
-    root /home/linuxbrew/.linuxbrew/var/www/php84/php-mvc-codekop;
+    listen [::]:80;
+    server_name pos.example.test;
+
+    root /var/www/php-mvc-codekop;
     index index.php;
 
-    client_max_body_size 10m;
-    charset utf-8;
+    # Upload logo, avatar, dan gambar barang dibatasi seperti validasi aplikasi.
+    client_max_body_size 20m;
 
-    # Only the front controller may be passed to PHP-FPM.
+    # Jangan tampilkan isi folder.
+    autoindex off;
+
+    # Folder internal aplikasi tidak boleh diakses dari web.
+    location ~* ^/(?:app|system|storage|database|vendor|\.git|\.agents|\.codex)(?:/|$) {
+        return 404;
+    }
+
+    # File tersembunyi dan file konfigurasi/backup tidak boleh diunduh.
+    location ~* /\.(?!well-known/) {
+        return 404;
+    }
+
+    location ~* \.(?:env|ini|log|sql|bak|dist|fla|psd|sh)$ {
+        return 404;
+    }
+
+    # Assets bersifat publik, tetapi file executable di dalamnya tetap diblokir.
+    location ~* ^/assets/.*\.(?:php[0-9]?|phtml|phar|cgi|pl|py|sh)$ {
+        return 404;
+    }
+
+    # Semua route aplikasi masuk melalui front controller.
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    # Hanya front controller yang boleh diteruskan ke PHP-FPM.
     location = /index.php {
-        try_files $uri =404;
         include fastcgi_params;
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         fastcgi_param HTTP_PROXY "";
-        fastcgi_pass 127.0.0.1:9000;
+        fastcgi_pass unix:/run/php/php8.4-fpm.sock;
     }
 
-    # Source, dependency, session, and queue directories are never public.
-    # The ^~ prefix prevents a later regex location from handling them.
-    location = /app { return 404; }
-    location ^~ /app/ { return 404; }
-    location = /system { return 404; }
-    location ^~ /system/ { return 404; }
-    location = /storage { return 404; }
-    location ^~ /storage/ { return 404; }
-    location = /vendor { return 404; }
-    location ^~ /vendor/ { return 404; }
-    location = /tests { return 404; }
-    location ^~ /tests/ { return 404; }
-
-    location ~* ^/(?:\.git|\.github|\.codex|\.agents)(?:/|$) {
+    # Jangan eksekusi file PHP lain meskipun suatu saat ter-upload/ter-copy.
+    location ~ \.php$ {
         return 404;
-    }
-
-    location ~* ^/(?:composer\.(?:json|lock)|README\.md|CHANGELOG\.md|AGENTS\.md|nginx\.conf\.example|apache2\.conf\.example)$ {
-        return 404;
-    }
-
-    location ~* \.(?:env|log|sql|sqlite|sqlite3|ini|bak|old)$ {
-        return 404;
-    }
-
-    # Any PHP URL other than the exact front controller is rejected.
-    location ~* \.php(?:/|$) { return 404; }
-
-    location ~ /\. {
-        return 404;
-    }
-
-    location / {
-        try_files $uri $uri/ /index.php?url=$uri&$query_string;
     }
 }

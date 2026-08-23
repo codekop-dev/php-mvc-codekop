@@ -16,6 +16,7 @@
     "config": { "sort-packages": true, "allow-plugins": {} },
     "scripts": {
         "queue:work": "@php system/console.php queue:work",
+        "bench:api": "@php system/console.php api:bench",
         "test": "@php vendor/bin/phpunit"
     }
 }

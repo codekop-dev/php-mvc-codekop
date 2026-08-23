@@ -39,4 +39,32 @@ final class Api extends Controller
             ],
         ]);
     }
+
+    /**
+     * Read-only sample query against a transaction table, used by the
+     * benchmark harness (docker/benchmark/) to measure a real DB-backed
+     * request instead of only stateless JSON endpoints.
+     */
+    public function transaksi(): Response
+    {
+        if (!$this->db instanceof \PDO) {
+            return Response::json(['success' => false, 'message' => 'Database not configured'], 500);
+        }
+
+        $limit = (int) ($this->request->query('limit', 20));
+        $limit = max(1, min($limit, 100));
+
+        $statement = $this->db->prepare(
+            'SELECT id, no_trx, total, status_bayar, metode_pembayaran, created_at
+             FROM penjualan
+             ORDER BY id DESC
+             LIMIT ' . $limit
+        );
+        $statement->execute();
+
+        return Response::json([
+            'success' => true,
+            'data' => $statement->fetchAll(),
+        ]);
+    }
 }

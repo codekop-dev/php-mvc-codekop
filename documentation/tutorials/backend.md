@@ -110,6 +110,69 @@ php system/console.php queue:work --once
 Test queue berada di `tests/Unit/Queue`. Payload queue tidak boleh dapat
 diakses HTTP dan `storage/queue` hanya writable oleh user aplikasi/worker.
 
+## Benchmark API
+
+Untuk mengukur latency dan throughput endpoint API (project sendiri maupun URL
+eksternal), gunakan command CLI `api:bench` di `system/console.php`. Command
+ini mengirim sejumlah request HTTP konkuren memakai `curl_multi` dan mencetak
+ringkasan hasil. Ini tool CLI/dev, bukan endpoint HTTP baru, jadi tidak
+menambah permukaan publik.
+
+Class intinya adalah `System\Core\Benchmark\ApiBenchmark`, dengan dua bagian
+terpisah: `run()` yang melakukan request sungguhan, dan `summarize()` yang
+murni menghitung statistik dari hasil request (bisa diuji tanpa network, lihat
+`tests/Unit/Benchmark/ApiBenchmarkTest.php`).
+
+### Menjalankan benchmark
+
+```bash
+php system/console.php api:bench --url=http://codekop.test/api/health
+php system/console.php api:bench --url=http://codekop.test/api/health --requests=200 --concurrency=20
+composer bench:api -- --url=http://codekop.test/api/health
+```
+
+Opsi yang tersedia:
+
+```
+--url=            URL target (wajib)
+--requests=100     Jumlah total request
+--concurrency=10   Jumlah request paralel
+--method=GET       Metode HTTP (GET, POST, PUT, DELETE, ...)
+--header="A: B"    Header tambahan, bisa diulang untuk beberapa header
+--body=...         Body request (dipakai jika method bukan GET/HEAD)
+--timeout=10       Timeout per request dalam detik
+--insecure         Lewati verifikasi TLS (endpoint self-signed lokal)
+```
+
+Contoh benchmark request `POST` dengan header dan body:
+
+```bash
+php system/console.php api:bench \
+  --url=http://codekop.test/api/echo \
+  --method=POST \
+  --header="Content-Type: application/json" \
+  --body='{"a":1}' \
+  --requests=50 --concurrency=10
+```
+
+### Membaca hasil
+
+```
+Benchmark: GET http://codekop.test/api/health
+  requests=100 concurrency=10 timeout=10.0s
+  total=100 success=100 failed=0 wall_time=0.412s rps=242.72
+  min=3.10ms avg=8.45ms median=7.90ms p90=12.30ms p95=14.10ms p99=18.02ms max=19.55ms
+  status codes:
+    200: 100
+```
+
+`failed` menghitung request dengan status di luar rentang 2xx/3xx atau yang
+gagal koneksi (timeout, DNS, koneksi ditolak, dsb). Jika ada error koneksi,
+beberapa contoh pesannya ditampilkan pada bagian `sample errors`. Naikkan
+`--concurrency` untuk mensimulasikan beban paralel yang lebih tinggi, dan
+naikkan `--timeout` jika endpoint target memang lambat secara wajar (mis.
+laporan berat) supaya request tidak dihitung gagal secara tidak akurat.
+
 ## Tutorial CRUD dengan Codex atau Claude
 
 Sebelum meminta AI menulis CRUD, minta AI membaca aturan project dan pola kode

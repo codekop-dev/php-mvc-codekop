@@ -1,0 +1,52 @@
+{
+	frankenphp
+	admin off
+}
+
+:80 {
+	root * /var/www/html
+	# No `encode gzip` here on purpose: nginx.conf/vhost.conf in the other
+	# benchmark runtimes don't compress either, and gzipping the tiny JSON
+	# body of /api/health would only add CPU cost without saving bytes —
+	# keeping it off keeps the comparison apples-to-apples.
+
+	# Mirror the .htaccess / nginx.conf.example deny rules: Caddy does not
+	# read .htaccess, so internal folders and non-front-controller PHP files
+	# must be blocked explicitly here.
+	@internal path /app/* /system/* /storage/* /database/* /vendor/* /.git/* /.agents/* /.codex/*
+	@hidden {
+		path_regexp ^/\.
+		not path /.well-known/*
+	}
+	@blocked_ext path_regexp \.(env|ini|log|sql|bak|dist|fla|psd|sh)$
+	@assets_exec path_regexp ^/assets/.*\.(php[0-9]?|phtml|phar|cgi|pl|py|sh)$
+	@other_php {
+		path_regexp \.php$
+		not path /index.php
+	}
+	# Mirrors the filename deny-list in the root .htaccess (composer.json/
+	# .lock, .env*, README/CHANGELOG/AGENTS.md, the *.conf.example files).
+	@meta_files path /.env* /composer.json /composer.lock /README.md /CHANGELOG.md /AGENTS.md /nginx.conf.example /apache2.conf.example
+
+	handle @internal {
+		respond 404
+	}
+	handle @hidden {
+		respond 404
+	}
+	handle @blocked_ext {
+		respond 404
+	}
+	handle @assets_exec {
+		respond 404
+	}
+	handle @other_php {
+		respond 404
+	}
+	handle @meta_files {
+		respond 404
+	}
+	handle {
+		php_server
+	}
+}

@@ -30,6 +30,14 @@ Semua perubahan penting pada project ini dicatat di file ini.
 - Queue backend dengan job di `app/Jobs`, `ShouldQueue`, retry/backoff, worker
   CLI, file driver, dan database/SQLite driver.
 - Console command `queue:work` melalui `system/console.php` dan script Composer.
+- Mekanisme benchmark API: class `System\Core\Benchmark\ApiBenchmark` (load
+  generator berbasis `curl_multi` plus summarizer latency/throughput) dan
+  console command `api:bench` beserta script Composer `bench:api`.
+- Harness benchmark Docker di `docker/benchmark/`: image terpisah per folder
+  untuk PHP-FPM+Apache2, PHP-FPM+Nginx, FrankenPHP (klasik & worker mode),
+  dan Swoole, parametrized PHP 8.2–8.5, toggle JIT lewat env `BENCH_JIT`,
+  orkestrator `run-matrix.sh`, dan tutorial
+  `documentation/tutorials/benchmark.md` berisi hasil smoke test nyata.
 - PHPUnit 10.5, konfigurasi `phpunit.xml`, serta unit test queue di `tests/Unit`.
 - Security smoke test HTTP di `tests/Security/security_smoke.sh`.
 - Seluruh materi dokumentasi dipindah ke tiga Markdown di

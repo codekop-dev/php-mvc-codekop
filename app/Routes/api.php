@@ -12,6 +12,7 @@ Route::prefix('api')->group(static function (): void {
     Route::get('/health', 'Api@health')->name('api.health');
     Route::post('/echo', 'Api@echo')->name('api.echo');
     Route::get('/route/{id}', 'Api@route')->name('api.route');
+    Route::get('/db/transaksi', 'Api@transaksi')->name('api.db.transaksi');
 
     // Tambahkan endpoint API per modul di file terpisah.
     require_once ROOTPATH . 'app/Routes/api_master.php';

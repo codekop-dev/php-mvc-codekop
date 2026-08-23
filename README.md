@@ -180,7 +180,7 @@ Yang harus ditambahkan oleh aplikasi pemakai sesuai kebutuhan:
       Queue/
           Queue contract, dispatcher, driver, dan worker manager.
       console.php
-          Perintah CLI, termasuk `queue:work`.
+          Perintah CLI, termasuk `queue:work` dan `api:bench`.
       Helper.php
           Helper global.
       run.php
@@ -198,7 +198,8 @@ Yang harus ditambahkan oleh aplikasi pemakai sesuai kebutuhan:
       index.html
           Pusat dokumentasi dan reader Markdown berbasis JavaScript lokal.
       tutorials/
-          Tiga materi Markdown: framework, backend, dan production aman.
+          Empat materi Markdown: framework, backend, production aman, dan
+          benchmark Docker (PHP-FPM, FrankenPHP, Swoole, JIT).
 
     storage/
       sessions/
@@ -748,6 +749,45 @@ Driver database memakai koneksi PDO aplikasi dan membuat tabel queue saat
 pertama kali dipakai jika `auto_create` aktif. Job yang melewati jumlah `tries`
 atau `max_attempts` dipindahkan ke failed storage. Worker memulihkan reservation
 yang stale berdasarkan `retry_after`.
+
+## Benchmark API
+
+Mekanisme benchmark API adalah command CLI `api:bench` di `system/console.php`
+(class inti: `System\Core\Benchmark\ApiBenchmark`). Command ini mengirim
+sejumlah request HTTP konkuren ke satu URL (endpoint API project sendiri atau
+URL eksternal) memakai `curl_multi`, lalu mencetak ringkasan latency dan
+throughput. Ini tool CLI/dev, bukan endpoint HTTP, sehingga tidak menambah
+permukaan publik dan konsisten dengan aturan front-controller-only.
+
+Jalankan dari root project:
+
+    php system/console.php api:bench --url=http://codekop.test/api/health
+    php system/console.php api:bench --url=http://codekop.test/api/health --requests=200 --concurrency=20
+    composer bench:api -- --url=http://codekop.test/api/health
+
+Opsi yang tersedia:
+
+    --url=            URL target (wajib)
+    --requests=100     Jumlah total request
+    --concurrency=10   Jumlah request paralel
+    --method=GET       Metode HTTP (GET, POST, PUT, DELETE, ...)
+    --header="A: B"    Header tambahan, bisa diulang untuk beberapa header
+    --body=...         Body request (dipakai jika method bukan GET/HEAD)
+    --timeout=10       Timeout per request dalam detik
+    --insecure         Lewati verifikasi TLS (endpoint self-signed lokal)
+
+Contoh output:
+
+    Benchmark: GET http://codekop.test/api/health
+      requests=100 concurrency=10 timeout=10.0s
+      total=100 success=100 failed=0 wall_time=0.412s rps=242.72
+      min=3.10ms avg=8.45ms median=7.90ms p90=12.30ms p95=14.10ms p99=18.02ms max=19.55ms
+      status codes:
+        200: 100
+
+`failed` menghitung request dengan status di luar rentang 2xx/3xx atau yang
+gagal koneksi (timeout, DNS, dsb); pesan error koneksi ditampilkan pada bagian
+`sample errors`.
 
 ## Security baseline
 
