@@ -19,7 +19,7 @@ $dbconfig = [
         'driver'     => 'mysql',
         'hostname'   => getenv('DB_HOST') ?: '127.0.0.1',
         'port'       => (int) (getenv('DB_PORT') ?: 3306),
-        'database'   => getenv('DB_NAME') ?: 'estock',
+        'database'   => getenv('DB_NAME') ?: '',
         'username'   => getenv('DB_USER') ?: 'root',
         'password'   => getenv('DB_PASSWORD') !== false ? getenv('DB_PASSWORD') : '',
         'charset'    => 'utf8mb4',
