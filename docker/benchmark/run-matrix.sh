@@ -7,8 +7,8 @@
 # skipped; it does not stop the rest of the matrix.
 #
 # Usage: bash docker/benchmark/run-matrix.sh [--with-db] [runtime ...] [-- version ...]
-#   No runtime/version args: runs the full matrix (5 runtimes x 4 versions x
-#   2 JIT states).
+#   No runtime/version args: runs the full matrix (5 runtimes x 3 versions x
+#   2 JIT states; PHP 8.5 excluded by default, see VERSIONS below).
 #   --with-db: also starts a shared, isolated benchmark-only DB container
 #   (docker/benchmark/db/init.sql — a penjualan/transaksi-shaped table with
 #   synthetic data, NOT the real app database) and additionally benchmarks
@@ -25,7 +25,11 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT_DIR"
 
 RUNTIMES=(php-fpm-apache php-fpm-nginx frankenphp frankenphp-worker swoole)
-VERSIONS=(8.2 8.3 8.4 8.5)
+# PHP 8.5 intentionally excluded: docker-php-ext-install fails to compile
+# pdo_mysql/pdo_sqlite/opcache against every 8.5 base image tried here
+# (php-fpm, FrankenPHP, Swoole) — confirmed in isolation, not host noise.
+# Pass "-- 8.5" explicitly if you want to retry it once that's fixed upstream.
+VERSIONS=(8.2 8.3 8.4)
 JIT_STATES=(off on)
 PORT=18099
 REQUESTS="${BENCH_REQUESTS:-300}"

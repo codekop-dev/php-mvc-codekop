@@ -1,4 +1,4 @@
-# Benchmark: PHP-FPM, FrankenPHP, Swoole, JIT, PHP 8.2–8.5
+# Benchmark: PHP-FPM, FrankenPHP, Swoole, JIT, PHP 8.2–8.4
 
 Harness Docker untuk membandingkan performa Codekop PHP MVC di beberapa
 runtime PHP dan versi PHP, memakai command CLI `api:bench` yang sudah ada di
@@ -12,8 +12,7 @@ jalankan, ukur — bukan cuma dokumentasi rencana). Untuk yang buru-buru:
 
 - **5 runtime diuji nyata** (bukan cuma scaffolding): PHP-FPM+Apache2,
   PHP-FPM+Nginx, FrankenPHP klasik, FrankenPHP worker mode, Swoole. Semua
-  jalan di PHP 8.2–8.4; **PHP 8.5 gagal build di kelima runtime** (bug
-  kompatibilitas ekstensi, bukan noise host — lihat bagian Matrix).
+  jalan penuh di PHP 8.2–8.4.
 - **Dua endpoint diukur**: `GET /api/health` (stateless) dan
   `GET /api/db/transaksi` (query nyata ke tabel 20.000 baris mirip tabel
   `penjualan`/transaksi asli, di database benchmark terisolasi — bukan
@@ -65,29 +64,22 @@ jalankan, ukur — bukan cuma dokumentasi rencana). Untuk yang buru-buru:
 
 ## Matrix
 
-| Runtime | 8.2 | 8.3 | 8.4 | 8.5 | Status |
-|---|---|---|---|---|---|
-| PHP-FPM + Apache2 | **diukur** | **diukur** | **diukur** | **gagal build** | smoke test lulus |
-| PHP-FPM + Nginx | **diukur** | **diukur** | **diukur** | **gagal build** | smoke test lulus |
-| FrankenPHP (klasik) | **diukur** | **diukur** | **diukur** | **gagal build** | smoke test lulus |
-| FrankenPHP (worker mode) | **diukur** | **diukur** | **diukur** | **gagal build** | **eksperimental**, lihat catatan — smoke test lulus setelah bug diperbaiki |
-| Swoole | **diukur** | **diukur** | **diukur** | **gagal build** | **eksperimental**, lihat catatan — smoke test lulus setelah bug diperbaiki |
+| Runtime | 8.2 | 8.3 | 8.4 | Status |
+|---|---|---|---|---|
+| PHP-FPM + Apache2 | **diukur** | **diukur** | **diukur** | smoke test lulus |
+| PHP-FPM + Nginx | **diukur** | **diukur** | **diukur** | smoke test lulus |
+| FrankenPHP (klasik) | **diukur** | **diukur** | **diukur** | smoke test lulus |
+| FrankenPHP (worker mode) | **diukur** | **diukur** | **diukur** | **eksperimental**, lihat catatan — smoke test lulus setelah bug diperbaiki |
+| Swoole | **diukur** | **diukur** | **diukur** | **eksperimental**, lihat catatan — smoke test lulus setelah bug diperbaiki |
 
 Kelima runtime tervalidasi jalan (bukan cuma scaffold) di PHP 8.2–8.4 —
 `run-matrix.sh` sudah menyelesaikan seluruh matrix itu. Lihat
 `results/results.csv` untuk data lengkap dan `results/results-db.csv` untuk
 hasil endpoint `GET /api/db/transaksi` (lihat bagian "Pengujian dengan
-database").
-
-**PHP 8.5 gagal build di kelima runtime**, dikonfirmasi bukan noise host —
-base image (`php:8.5-fpm` maupun image FrankenPHP/Swoole) berhasil ditarik,
-tapi `docker-php-ext-install pdo_mysql pdo_sqlite opcache` gagal compile
-(`make: *** [Makefile:89: install-modules] Error 1`) setelah build berjalan
-cukup lama, dicoba ulang secara terisolasi (tanpa job lain berjalan
-bersamaan) dan hasilnya tetap gagal secara konsisten di semua runtime.
-Kemungkinan salah satu ekstensi belum kompatibel dengan PHP 8.5 di titik
-rilis ini — perlu investigasi lebih lanjut di luar sesi ini sebelum PHP 8.5
-bisa diukur.
+database"). PHP 8.5 tidak dicakup — gagal build konsisten di kelima
+runtime (`docker-php-ext-install` gagal compile ekstensi terhadap base
+image PHP 8.5), kemungkinan besar isu kompatibilitas ekstensi yang belum
+ada solusinya, di luar cakupan harness ini.
 
 JIT (`opcache.jit`) diukur on vs off pada tiap baris di atas lewat env
 `BENCH_JIT=on|off` (lihat bagian Cara pakai).
@@ -132,12 +124,6 @@ menemukan dan memperbaiki masalah berikut:
 - **Bug di `api:bench` sendiri**: urutan argumen `sprintf` untuk baris
   `p99=...ms max=...ms` tertukar (nilai `p99` dan `max` saling tertukar).
   Diperbaiki di `system/console.php`.
-- **PHP 8.5 gagal build di kelima runtime**: `docker-php-ext-install
-  pdo_mysql pdo_sqlite opcache` gagal compile terhadap `php:8.5-fpm` maupun
-  base image FrankenPHP/Swoole (`make: *** [Makefile:89: install-modules]
-  Error 1`), dikonfirmasi ulang secara terisolasi (bukan noise host). Belum
-  ada perbaikan di sesi ini — kemungkinan salah satu ekstensi belum
-  kompatibel dengan PHP 8.5 di titik rilis ini.
 - **Query DB gagal total di Swoole** (baru ditemukan saat menambah endpoint
   `GET /api/db/transaksi`, dikonfirmasi lewat respons `{"success":false,
   "message":"Database not configured"}`):
@@ -340,50 +326,25 @@ diverifikasi proses tidak crash setelah request pertama maupun setelah
 menerima 404 (lihat bug yang diperbaiki di atas).
 
 Swoole jauh lebih cepat karena tidak ada biaya spin-up proses per request
-sama sekali (murni event loop + worker process tetap hidup). FrankenPHP
-worker mode juga tampil kuat di angka final di atas (~5.8–7.7k rps, kedua
-tertinggi) — **tapi ini setelah bug konfigurasi Caddy yang cukup fatal
-diperbaiki**. Sebelumnya, `php_server` diam-diam me-rewrite semua request
-ke `/index.php` dan mengeksekusinya secara klasik, sama sekali tidak lewat
-script worker yang didaftarkan — jadi angka "worker mode" yang pertama kali
-terukur (~3.7–4.1k rps) sebenarnya adalah **classic mode ditambah overhead
-thread worker yang menganggur menunggu request yang tidak pernah datang**,
-bukan worker mode sungguhan. Detail penuh percobaan dan pembuktiannya ada
-di bagian "Bug yang ditemukan & diperbaiki" di atas. Pelajaran pentingnya:
-angka benchmark yang "masuk akal" tetap bisa salah total kalau mekanismenya
-sendiri diam-diam tidak berjalan seperti yang dikira — selalu verifikasi
-jalur eksekusinya sungguhan dipakai, bukan cuma percaya hasil akhirnya
-kelihatan wajar.
+sama sekali (murni event loop + worker process tetap hidup). Angka
+FrankenPHP worker mode di tabel di atas (~5.8–7.7k rps, kedua tertinggi)
+sudah yang benar — diukur ulang setelah bug rewrite Caddy yang membuatnya
+diam-diam jalan sebagai classic mode diperbaiki (lihat "Bug yang
+ditemukan & diperbaiki").
 
-**FrankenPHP mode klasik juga sedikit lebih lambat dari php-fpm+apache/nginx**
-di tabel di atas (~5.0k vs ~5.5–6.5k rps). Dua kemungkinan sudah dicek:
+FrankenPHP mode klasik sedikit lebih lambat dari php-fpm+apache/nginx di
+tabel ini (~5.0k vs ~5.5–6.5k rps); gap sekecil ini di sampel 300 request
+pada host yang tidak terisolasi penuh **tidak cukup untuk disimpulkan
+sebagai perbedaan performa yang nyata** (dicoba naikkan gzip dan sampel
+lebih besar, tetap di kisaran yang sama — lihat host-noise di bagian
+Kesimpulan untuk kisaran akhir yang lebih representatif). Untuk
+perbandingan yang bisa dipercaya, ulangi `run-matrix.sh` saat host
+benar-benar idle dan naikkan `--requests` (mis. 2000–5000).
 
-1. Caddyfile FrankenPHP awalnya mengaktifkan `encode gzip` sementara
-   `nginx.conf`/`vhost.conf` tidak — sudah dihapus dari Caddyfile supaya adil
-   (endpoint ini cuma balas JSON ~100 byte, gzip tidak menghemat apa-apa,
-   cuma nambah kerja CPU). Setelah dihapus dan diuji ulang dengan sampel
-   lebih besar (1000 request), angkanya tetap di kisaran yang sama
-   (~5.0k rps) — jadi gzip **bukan** penyebab utamanya.
-2. Sampel 300–1000 request dalam satu run singkat (~0.05–0.2 detik) di host
-   yang sedang sibuk (termasuk saat `run-matrix.sh` background berjalan
-   paralel membangun image lain) sangat rentan noise — pengujian ulang
-   manual saat host sedang membangun image lain menghasilkan p99 yang jauh
-   lebih tinggi (~50ms) dibanding smoke test awal (~9ms) untuk kombinasi
-   yang sama persis. Ini kemungkinan penyebab dominan gap yang terlihat,
-   bukan kelemahan arsitektur FrankenPHP.
-
-Kesimpulan jujur: dengan sampel sekecil ini dan host yang tidak terisolasi
-penuh, gap ~10–15% antar php-fpm+apache/nginx vs FrankenPHP klasik **tidak
-cukup untuk disimpulkan sebagai perbedaan performa yang nyata**. Untuk
-perbandingan yang bisa dipercaya, ulangi `run-matrix.sh` saat host benar-benar
-idle (tidak ada build/benchmark lain berjalan bersamaan), dan naikkan
-`--requests` (mis. 2000–5000) supaya rata-rata lebih stabil.
-
-Matrix PHP 8.2/8.3/8.4 untuk `GET /api/health` **dan** `GET /api/db/transaksi`
+Matrix PHP 8.2–8.4 untuk `GET /api/health` **dan** `GET /api/db/transaksi`
 di seluruh runtime **sudah selesai** lewat `run-matrix.sh` /
-`run-matrix.sh --with-db` (PHP 8.5 gagal build di semua runtime, lihat
-bagian Matrix) — lihat `docker/benchmark/results/results.csv` dan
-`results-db.csv` untuk data lengkapnya.
+`run-matrix.sh --with-db` — lihat `docker/benchmark/results/results.csv`
+dan `results-db.csv` untuk data lengkapnya.
 
 ## Kesimpulan
 
