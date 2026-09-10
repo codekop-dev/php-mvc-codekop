@@ -60,6 +60,12 @@ coding agents untuk perubahan yang terukur, aman, dan mudah diuji.
     Security deployment tetap diuji melalui tests/Security pada Apache/Nginx.
 15. Jika menambah atau mengubah dependency, perbarui composer.lock dan jalankan
     Composer validation.
+16. View HTML harus kompatibel dengan Retro-term. Muat asset lokal
+    `assets/retro-term/retro-term.min.css` dan icon stylesheet, gunakan class
+    serta utility `rt-*` sebagai dasar, lalu gunakan `assets/main.css` untuk
+    style aplikasi bersama. Jangan membuat `<style>` inline di
+    `app/Views`; jika komponen membutuhkan style yang belum tersedia, tambahkan
+    ke `assets/main.css` setelah memastikan utility Retro-term tidak cukup.
 
 ## Verifikasi
 

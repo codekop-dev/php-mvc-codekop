@@ -1,7 +1,9 @@
-<?php 
+<?php
+namespace App\Models;
+
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-use \System\Models;
+use System\Models;
 
 class Test extends Models {
 

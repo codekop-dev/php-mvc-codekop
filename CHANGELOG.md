@@ -57,6 +57,11 @@ Semua perubahan penting pada project ini dicatat di file ini.
 
 ### Changed
 
+- Memindahkan CSS halaman welcome dan testing dari inline view ke asset utama
+  `assets/main.css`, dengan Retro-term tetap menjadi stylesheet dasar.
+- Menormalkan contoh `app/Models/Test.php` ke namespace `App\\Models` agar
+  pemuatan model melalui autoloader PSR-4 tidak mendeklarasikan class global
+  yang sama dua kali.
 - Merapikan halaman welcome, route test, error 404, dan pusat dokumentasi dengan
   layout minimalis responsif tanpa shadow serta menambahkan kredit Support by
   AITI Solutions, Codekop, dan link repository GitHub.

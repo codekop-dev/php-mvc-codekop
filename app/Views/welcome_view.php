@@ -11,39 +11,9 @@ $title = $title ?? 'Codekop MVC';
     <link rel="icon" href="<?= e(base_url('assets/img/codekop-logo.png')) ?>">
     <link rel="stylesheet" href="<?= e(base_url('assets/retro-term/retro-term.min.css')) ?>">
     <link rel="stylesheet" href="<?= e(base_url('assets/retro-term/retro-term-icons.min.css')) ?>">
-    <style nonce="<?= e(CSP_NONCE) ?>">
-        body { background:radial-gradient(circle at 50% -10%, rgba(var(--rt-primary-rgb),.12), transparent 34rem), var(--rt-bg); }
-        .codekop-nav { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:1rem 0; border-bottom:1px solid var(--rt-border); }
-        .codekop-brand { display:flex; align-items:center; gap:.65rem; color:var(--rt-text); text-decoration:none; font-size:1rem; font-weight:800; letter-spacing:-.02em; }
-        .codekop-brand img { width:38px; height:38px; border-radius:10px; }
-        .codekop-theme-toggle { display:inline-flex; align-items:center; gap:.5rem; cursor:pointer; border-radius:999px; }
-        .codekop-hero { padding:clamp(4rem,10vw,8rem) 1rem 5rem; }
-        .codekop-card { max-width:920px; margin:0 auto; padding:0; }
-        .codekop-card .rt-badge { margin-bottom:1.25rem; border-radius:999px; }
-        .codekop-card h1 { max-width:760px; margin:0; font-size:clamp(2.35rem,6vw,5rem); line-height:1.04; letter-spacing:-.055em; }
-        .codekop-card .rt-hero-subtitle { max-width:670px; margin:1.5rem 0 0; color:var(--rt-muted); font-size:clamp(1rem,2vw,1.2rem); line-height:1.75; }
-        .rt-hero-actions { display:flex; flex-wrap:wrap; gap:.75rem; margin-top:2rem; }
-        .rt-hero-actions .rt-btn { border-radius:999px; }
-        .rt-hero-actions .rt-btn i { width:1.1rem; height:1.1rem; display:inline-block; margin-right:.4rem; background-color:currentColor; vertical-align:-.15em; }
-        .rt-badge i { width:1rem; height:1rem; display:inline-block; margin-right:.35rem; background-color:currentColor; vertical-align:-.15em; }
-        .codekop-terminal { max-width:650px; margin-top:3.25rem; padding:1rem 1.15rem; border:1px solid var(--rt-border); border-radius:12px; background:rgba(17,24,39,.72); color:#b7f7c0; font:13px/1.8 ui-monospace,SFMono-Regular,Menlo,monospace; }
-        .codekop-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-top:3.5rem; }
-        .codekop-feature { min-height:170px; padding:1.25rem; border:1px solid var(--rt-border); border-radius:14px; background:color-mix(in srgb, var(--rt-surface) 72%, transparent); }
-        .codekop-feature > i { width:42px; height:42px; display:grid; place-items:center; margin-bottom:1.1rem; border:1px solid rgba(var(--rt-primary-rgb),.28); border-radius:50%; background:rgba(var(--rt-primary-rgb),.1); background-repeat:no-repeat; background-position:center; background-size:1.35rem; color:var(--rt-primary); font-size:1.35rem; }
-        .codekop-feature h3 { margin:.25rem 0 .5rem; font-size:1rem; }
-        .codekop-feature p { margin:0; color:var(--rt-muted); line-height:1.65; }
-        .codekop-footer { padding:1.5rem 1rem 2rem; border-top:1px solid var(--rt-border); color:var(--rt-muted); font-size:.85rem; text-align:center; }
-        .codekop-footer a { color:var(--rt-text); }
-        @media (max-width:680px) {
-            .codekop-nav { padding-inline:1rem; }
-            .codekop-theme-toggle span { display:none; }
-            .codekop-grid { grid-template-columns:1fr; margin-top:2.5rem; }
-            .codekop-feature { min-height:0; }
-            .codekop-hero { padding-top:3.5rem; }
-        }
-    </style>
+    <link rel="stylesheet" href="<?= e(base_url('assets/main.css')) ?>">
 </head>
-<body>
+<body class="codekop-page">
 <header class="rt-container codekop-nav">
     <a class="codekop-brand" href="<?= e(base_url()) ?>">
         <img src="<?= e(base_url('assets/img/codekop-logo.png')) ?>" alt="Codekop MVC">

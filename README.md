@@ -187,6 +187,8 @@ Yang harus ditambahkan oleh aplikasi pemakai sesuai kebutuhan:
           Bootstrap framework.
 
     assets/
+      main.css
+          Style utama aplikasi untuk view welcome dan testing.
       retro-term/
           CSS, JavaScript, dan icon Retro-term.
       img/
@@ -852,7 +854,7 @@ Periksa app/Config/Config.php sebelum deploy.
 Starter ini kompatibel dengan pola model `posv1`:
 
 ```php
-// model legacy: app/Models/Test.php
+// model PSR-4: app/Models/Test.php (namespace App\Models)
 $test = $this->model('Test');
 
 // model PSR-4 di app/Models/Reports/Sales.php
