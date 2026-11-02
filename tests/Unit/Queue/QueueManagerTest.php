@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Tests\Unit\Queue;
@@ -40,7 +41,7 @@ final class QueueManagerTest extends TestCase
             1,
             static function (string $message) use (&$messages): void {
                 $messages[] = $message;
-            }
+            },
         );
 
         self::assertSame(1, $processed);
@@ -52,7 +53,9 @@ final class QueueManagerTest extends TestCase
 
     private function removeDirectory(string $path): void
     {
-        if (!is_dir($path)) return;
+        if (!is_dir($path)) {
+            return;
+        }
         foreach (glob($path . '/*') ?: [] as $entry) {
             if (is_dir($entry)) {
                 $this->removeDirectory($entry);

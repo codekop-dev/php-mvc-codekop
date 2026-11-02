@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace System\Queue;
@@ -20,7 +21,7 @@ final class QueueManager
         $driver = strtolower((string) ($this->config['driver'] ?? 'file'));
         $this->driver = match ($driver) {
             'file' => new FileQueueDriver(
-                (string) ($this->config['path'] ?? ROOTPATH . 'storage/queue')
+                (string) ($this->config['path'] ?? ROOTPATH . 'storage/queue'),
             ),
             'database', 'db' => new DatabaseQueueDriver((array) ($this->config['database'] ?? [])),
             default => throw new QueueException('Unsupported queue driver: ' . $driver),
@@ -43,13 +44,16 @@ final class QueueManager
             throw new QueueException('Unable to serialize queued job: ' . $class, 0, $exception);
         }
         $selectedQueue = $queue;
-        if ($selectedQueue === null && $job instanceof Job) $selectedQueue = $job->queue;
+        if ($selectedQueue === null && $job instanceof Job) {
+            $selectedQueue = $job->queue;
+        }
         $selectedQueue = $selectedQueue ?: (string) ($this->config['default'] ?? 'default');
         if (!preg_match('/^[A-Za-z0-9_-]{1,100}$/', $selectedQueue)) {
             throw new QueueException('Invalid queue name.');
         }
 
         $availableAt = time() + max(0, $delay ?? (int) ($this->config['delay'] ?? 0));
+
         return $this->driver->push($class, $payload, $selectedQueue, $availableAt, time());
     }
 
@@ -58,7 +62,7 @@ final class QueueManager
         bool $once = false,
         int $sleep = 0,
         int $maxJobs = 0,
-        ?callable $output = null
+        ?callable $output = null,
     ): int {
         $selectedQueue = $queue ?: (string) ($this->config['default'] ?? 'default');
         $sleep = max(0, $sleep ?: (int) ($this->config['sleep'] ?? 3));
@@ -68,8 +72,12 @@ final class QueueManager
         while ($maxJobs <= 0 || $processed < $maxJobs) {
             $envelope = $this->driver->reserve($selectedQueue, $retryAfter);
             if ($envelope === null) {
-                if ($once) break;
-                if ($sleep > 0) sleep($sleep);
+                if ($once) {
+                    break;
+                }
+                if ($sleep > 0) {
+                    sleep($sleep);
+                }
                 continue;
             }
             $processed++;
@@ -102,7 +110,9 @@ final class QueueManager
                 }
             }
             unset($job);
-            if ($once) break;
+            if ($once) {
+                break;
+            }
         }
 
         return $processed;
@@ -120,6 +130,7 @@ final class QueueManager
         if (!$job instanceof ShouldQueue) {
             throw new QueueException('Queued payload does not implement ShouldQueue.');
         }
+
         return $job;
     }
 
@@ -127,6 +138,7 @@ final class QueueManager
     {
         if ($output !== null) {
             $output($message);
+
             return;
         }
         fwrite(STDOUT, '[' . date('Y-m-d H:i:s') . '] ' . $message . PHP_EOL);

@@ -6,7 +6,6 @@ namespace Config;
 
 defined('BASEPATH') || exit('No direct script access allowed');
 
-use System\Route;
 
 $routes['DefaultController'] = 'Home::index';
 

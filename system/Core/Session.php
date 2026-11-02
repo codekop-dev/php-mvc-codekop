@@ -1,14 +1,18 @@
 <?php
+
 declare(strict_types=1);
+
 namespace System;
-defined('BASEPATH') OR exit('No direct script access allowed');
+
+defined('BASEPATH') or exit('No direct script access allowed');
 /*
   |--------------------------------------------------------------------------
   | Session Settings
   |--------------------------------------------------------------------------
   |
  */
-class Session {
+class Session
+{
     private string $ses_default;
 
     public function __construct()
@@ -18,7 +22,9 @@ class Session {
 
     public function session_on(): bool
     {
-        if (session_status() === PHP_SESSION_ACTIVE) return true;
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            return true;
+        }
         $sessionPath = defined('SESSION_PATH') ? SESSION_PATH : ROOTPATH . 'storage/sessions';
         if (!is_dir($sessionPath)) {
             mkdir($sessionPath, 0700, true);
@@ -33,12 +39,13 @@ class Session {
             'path' => defined('SESSION_COOKIE_PATH') ? SESSION_COOKIE_PATH : '/',
             'secure' => $secure,
             'httponly' => true,
-            'samesite' => defined('SESSION_SAMESITE') ? SESSION_SAMESITE : 'Lax'
+            'samesite' => defined('SESSION_SAMESITE') ? SESSION_SAMESITE : 'Lax',
         ]);
         if ((bool) Config::get('session.cleanup.enabled', false)
             && function_exists('cleanup_stale_session_files')) {
             cleanup_stale_session_files();
         }
+
         return session_start(['use_strict_mode' => true, 'use_only_cookies' => true]);
     }
 
@@ -56,6 +63,7 @@ class Session {
     public function get(string $key, mixed $default = null): mixed
     {
         $this->session_on();
+
         return array_key_exists($key, $_SESSION) ? $_SESSION[$key] : $default;
     }
 
@@ -63,7 +71,10 @@ class Session {
     {
         $this->session_on();
         if (is_array($key)) {
-            foreach ($key as $name => $item) $_SESSION[(string) $name] = $item;
+            foreach ($key as $name => $item) {
+                $_SESSION[(string) $name] = $item;
+            }
+
             return;
         }
         $_SESSION[$key] = $value;
@@ -72,18 +83,22 @@ class Session {
     public function has(string $key): bool
     {
         $this->session_on();
+
         return array_key_exists($key, $_SESSION);
     }
 
     public function forget(string|array $key): void
     {
         $this->session_on();
-        foreach ((array) $key as $name) unset($_SESSION[(string) $name]);
+        foreach ((array) $key as $name) {
+            unset($_SESSION[(string) $name]);
+        }
     }
 
     public function all(): array
     {
         $this->session_on();
+
         return $_SESSION;
     }
 
@@ -96,6 +111,7 @@ class Session {
     public function invalidate(): bool
     {
         $this->flush();
+
         return $this->regenerate(true);
     }
 
@@ -108,12 +124,15 @@ class Session {
     {
         $value = $this->get('_flash.' . $key, $default);
         $this->forget('_flash.' . $key);
+
         return $value;
     }
 
     public function ses_destroy(): bool
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) return true;
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            return true;
+        }
         $_SESSION = [];
         $params = session_get_cookie_params();
         if (!headers_sent()) {
@@ -126,13 +145,15 @@ class Session {
                 'samesite' => $params['samesite'] ?? 'Lax',
             ]);
         }
+
         return session_destroy();
     }
 
     public function set_userdata($name, $value): mixed
     {
-       $this->set((string) $name, $value);
-       return $value;
+        $this->set((string) $name, $value);
+
+        return $value;
     }
 
     public function userdata($name): mixed
@@ -145,17 +166,17 @@ class Session {
         $_SESSION['flash'] = [
             'pesan' => $pesan,
             'aksi'  => $aksi,
-            'tipe'  => $tipe
+            'tipe'  => $tipe,
         ];
     }
 
     public static function flashdata()
     {
-        if( isset($_SESSION['flash']) ) {
+        if (isset($_SESSION['flash'])) {
             $flash = $_SESSION['flash'];
             $type = preg_match('/^[A-Za-z0-9_-]+$/', (string) ($flash['tipe'] ?? 'info'))
                 ? (string) $flash['tipe'] : 'info';
-            $escape = static fn(mixed $value): string => htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $escape = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
             echo '<div class="alert alert-' . $escape($type) . ' alert-dismissible fade show" role="alert">
                     <strong>' . $escape($flash['pesan'] ?? '') . '</strong> ' . $escape($flash['aksi'] ?? '') . '
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace System\Core\Benchmark;
@@ -22,7 +23,7 @@ final class ApiBenchmark
         ?string $body = null,
         array $headers = [],
         float $timeout = 10.0,
-        bool $verifyTls = true
+        bool $verifyTls = true,
     ): array {
         $requests = max(1, $requests);
         $concurrency = max(1, min($concurrency, $requests));
@@ -44,6 +45,7 @@ final class ApiBenchmark
             if ($body !== null && $method !== 'GET' && $method !== 'HEAD') {
                 curl_setopt($handle, CURLOPT_POSTFIELDS, $body);
             }
+
             return $handle;
         };
 

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace System\Queue;
@@ -20,7 +21,7 @@ final class JobEnvelope
         string $payload,
         int $attempts,
         int $availableAt,
-        int $createdAt
+        int $createdAt,
     ) {
         $this->id = $id;
         $this->queue = $queue;

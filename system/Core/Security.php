@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace System;
 
 defined('BASEPATH') || exit('No direct script access allowed');
@@ -14,6 +16,7 @@ final class Security
         if (empty($_SESSION['_csrf'])) {
             $_SESSION['_csrf'] = bin2hex(random_bytes(32));
         }
+
         return $_SESSION['_csrf'];
     }
 
@@ -22,6 +25,7 @@ final class Security
         if (session_status() !== PHP_SESSION_ACTIVE) {
             return false;
         }
+
         return is_string($token) && $token !== '' && isset($_SESSION['_csrf'])
             && hash_equals((string) $_SESSION['_csrf'], $token);
     }
@@ -32,6 +36,7 @@ final class Security
             (new Session())->session_on();
         }
         $_SESSION['_csrf'] = bin2hex(random_bytes(32));
+
         return $_SESSION['_csrf'];
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 defined('BASEPATH') || exit('No direct script access allowed');
@@ -58,7 +59,7 @@ final class Api extends Controller
             'SELECT id, no_trx, total, status_bayar, metode_pembayaran, created_at
              FROM penjualan
              ORDER BY id DESC
-             LIMIT ' . $limit
+             LIMIT ' . $limit,
         );
         $statement->execute();
 

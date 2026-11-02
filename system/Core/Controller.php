@@ -52,6 +52,7 @@ class Controller
         if (!class_exists($class) && class_exists((string) $model)) {
             $class = (string) $model;
         }
+
         return new $class();
     }
 

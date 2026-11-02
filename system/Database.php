@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace System;
 
 defined('BASEPATH') || exit('No direct script access allowed');
@@ -23,8 +25,12 @@ class Database
 
     public function connect(): ?PDO
     {
-        if ($this->db instanceof PDO) return $this->db;
-        if (($this->config['database'] ?? '') === '') return null;
+        if ($this->db instanceof PDO) {
+            return $this->db;
+        }
+        if (($this->config['database'] ?? '') === '') {
+            return null;
+        }
 
         $driver = strtolower((string) ($this->config['driver'] ?? 'mysql'));
         $dsn = $this->dsn($driver);
@@ -45,20 +51,25 @@ class Database
                 $dsn,
                 (string) ($this->config['username'] ?? ''),
                 (string) ($this->config['password'] ?? ''),
-                $options
+                $options,
             );
             self::$pool[$poolKey] = $this->db;
+
             return $this->db;
         } catch (PDOException $exception) {
             error_log('Database connection failed: ' . $exception->getMessage());
             if ((bool) ($this->config['throw_exceptions'] ?? false)) {
                 throw new RuntimeException('Database connection failed.', 0, $exception);
             }
+
             return null;
         }
     }
 
-    public function pdo(): ?PDO { return $this->connect(); }
+    public function pdo(): ?PDO
+    {
+        return $this->connect();
+    }
 
     private function dsn(string $driver): string
     {
@@ -68,12 +79,13 @@ class Database
         if ($driver !== 'mysql') {
             throw new RuntimeException('Unsupported database driver: ' . $driver);
         }
+
         return sprintf(
             'mysql:host=%s;port=%d;dbname=%s;charset=%s',
             (string) ($this->config['hostname'] ?? '127.0.0.1'),
             (int) ($this->config['port'] ?? 3306),
             (string) $this->config['database'],
-            (string) ($this->config['charset'] ?? 'utf8mb4')
+            (string) ($this->config['charset'] ?? 'utf8mb4'),
         );
     }
 }

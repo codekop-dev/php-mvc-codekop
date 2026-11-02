@@ -41,12 +41,14 @@ class Input
     public function getPost(string $name, bool $stripTags = false): mixed
     {
         $value = $_POST[$name] ?? null;
+
         return $stripTags && is_string($value) ? strip_tags($value) : $value;
     }
 
     public function getGet(string $name, bool $stripTags = false): mixed
     {
         $value = $_GET[$name] ?? null;
+
         return $stripTags && is_string($value) ? strip_tags($value) : $value;
     }
 }

@@ -1,20 +1,21 @@
 <?php
+
 declare(strict_types=1);
 /*
   |--------------------------------------------------------------------------
   | Codekop PHP MVC Frameworks
   |--------------------------------------------------------------------------
-  | is a simple open web project using php mvc frameworks 
-  | simple php mvc made for the purpose of learning and new things about php 
+  | is a simple open web project using php mvc frameworks
+  | simple php mvc made for the purpose of learning and new things about php
   | with php mvc concept.
-  | 
+  |
   | @package   : php-mvc-codekop
   | @author    : Codekop Dev Team
   | @copyright : Copyright (c) 2019-2026 Codekop.com (https://www.codekop.com)
   |
-  | free for everyone to development a simple open web project using php mvc 
+  | free for everyone to development a simple open web project using php mvc
   | recommended php version for running for php 8.2+
-  | 
+  |
  */
 
 $minimumPhp = '8.2.0';

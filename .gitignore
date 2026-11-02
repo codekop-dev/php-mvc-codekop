@@ -4,3 +4,5 @@
 .DS_Store
 *.log
 .phpunit.cache/
+.php-cs-fixer.cache
+/storage/.php-cs-fixer.cache

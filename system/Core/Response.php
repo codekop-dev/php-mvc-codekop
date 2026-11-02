@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace System;
@@ -11,7 +12,8 @@ final class Response
         private readonly mixed $content = null,
         private readonly int $status = 200,
         private readonly array $headers = [],
-    ) {}
+    ) {
+    }
 
     public static function json(mixed $data = null, int $status = 200, array $headers = []): self
     {
@@ -36,6 +38,7 @@ final class Response
         if (strpbrk($location, "\r\n") !== false) {
             throw new \InvalidArgumentException('Invalid redirect location.');
         }
+
         return new self(null, $status, ['Location' => $location]);
     }
 
@@ -45,12 +48,17 @@ final class Response
         foreach ($this->headers as $name => $value) {
             header($name . ': ' . $value, true);
         }
-        if (in_array($this->status, [204, 304], true)) return;
+        if (in_array($this->status, [204, 304], true)) {
+            return;
+        }
         $contentType = strtolower((string) ($this->headers['Content-Type'] ?? ''));
         if (str_contains($contentType, 'application/json')) {
             echo json_encode($this->content, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+
             return;
         }
-        if ($this->content !== null) echo (string) $this->content;
+        if ($this->content !== null) {
+            echo (string) $this->content;
+        }
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 $debug_handler = defined('APP_ENV') ? APP_ENV : 'production';
@@ -15,7 +16,9 @@ if (APP_DEBUG) {
         .codekop-debug-error strong{color:#fca5a5}.codekop-debug-error small{color:#fda4af}
     </style>';
     set_error_handler(static function (int $severity, string $message, string $file, int $line) use ($debugStyle): bool {
-        if (!(error_reporting() & $severity)) return false;
+        if (!(error_reporting() & $severity)) {
+            return false;
+        }
         $label = match (true) {
             in_array($severity, [E_DEPRECATED, E_USER_DEPRECATED], true) => 'Deprecated',
             in_array($severity, [E_NOTICE, E_USER_NOTICE], true) => 'Notice',
@@ -25,6 +28,7 @@ if (APP_DEBUG) {
             . htmlspecialchars($message, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
             . '<br><small>' . htmlspecialchars($file, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
             . ':' . $line . '</small></div>';
+
         return true;
     });
     set_exception_handler(static function (Throwable $exception) use ($debugStyle): void {

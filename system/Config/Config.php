@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace System;
@@ -20,17 +21,24 @@ final class Config
     {
         $value = self::$items;
         foreach (explode('.', $key) as $segment) {
-            if (!is_array($value) || !array_key_exists($segment, $value)) return $default;
+            if (!is_array($value) || !array_key_exists($segment, $value)) {
+                return $default;
+            }
             $value = $value[$segment];
         }
+
         return $value;
     }
 
     public static function set(string $key, mixed $value): void
     {
         self::$items[$key] = $value;
-        if ($key === 'base_url') self::$siteURL = (string) $value;
-        if ($key === 'timezone') self::$timeZone = (string) $value;
+        if ($key === 'base_url') {
+            self::$siteURL = (string) $value;
+        }
+        if ($key === 'timezone') {
+            self::$timeZone = (string) $value;
+        }
     }
 
     public static function all(): array
@@ -59,21 +67,31 @@ final class Config
     public static function Helper(?array $helpers = null): mixed
     {
         foreach ($helpers ?? [] as $helper) {
-            if ($helper === '') return null;
+            if ($helper === '') {
+                return null;
+            }
+
             return include ROOTPATH . 'app/Helper/' . $helper . '.php';
         }
+
         return null;
     }
 
     public static function Model(?array $models = null): mixed
     {
         foreach ($models ?? [] as $model) {
-            if (!$model) return null;
+            if (!$model) {
+                return null;
+            }
             $file = ROOTPATH . 'app/Models/' . $model . '.php';
-            if (!is_file($file)) return null;
+            if (!is_file($file)) {
+                return null;
+            }
             require_once $file;
+
             return new $model();
         }
+
         return null;
     }
 }

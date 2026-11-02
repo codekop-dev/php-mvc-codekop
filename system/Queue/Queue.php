@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace System\Queue;
@@ -24,7 +25,7 @@ final class Queue
         bool $once = false,
         int $sleep = 0,
         int $maxJobs = 0,
-        ?callable $output = null
+        ?callable $output = null,
     ): int {
         return self::manager()->work($queue, $once, $sleep, $maxJobs, $output);
     }

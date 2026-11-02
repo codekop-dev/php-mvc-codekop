@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace System\Queue\Contracts;
@@ -12,7 +13,7 @@ interface QueueDriver
         string $payload,
         string $queue,
         int $availableAt,
-        int $createdAt
+        int $createdAt,
     ): string;
 
     public function reserve(string $queue, int $retryAfter): ?JobEnvelope;

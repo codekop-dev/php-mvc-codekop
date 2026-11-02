@@ -1,16 +1,17 @@
-<?php 
-defined('BASEPATH') OR exit('No direct script access allowed');
+<?php
 
-use \System\Controller;
+defined('BASEPATH') or exit('No direct script access allowed');
 
-class Home extends Controller {
+use System\Controller;
 
+class Home extends Controller
+{
     public function __construct()
     {
         parent::__construct();
         $this->model('Test');
     }
-    
+
     public function index()
     {
         $data['title'] = 'Selamat datang di codekop php mvc';
@@ -21,7 +22,7 @@ class Home extends Controller {
     {
         $data = [
             'title'         => 'Program testing',
-            'page_title'    => 'Page Testing'
+            'page_title'    => 'Page Testing',
         ];
 
         $this->show->view('tes_view', $data);

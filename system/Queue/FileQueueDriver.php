@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace System\Queue;
@@ -29,7 +30,7 @@ final class FileQueueDriver implements QueueDriver
         string $payload,
         string $queue,
         int $availableAt,
-        int $createdAt
+        int $createdAt,
     ): string {
         $id = bin2hex(random_bytes(16));
         $this->write($this->pendingPath . DIRECTORY_SEPARATOR . $id . '.json', [
@@ -149,16 +150,19 @@ final class FileQueueDriver implements QueueDriver
             (string) $data['payload'],
             (int) $data['attempts'],
             (int) $data['available_at'],
-            (int) $data['created_at']
+            (int) $data['created_at'],
         );
     }
 
     private function read(string $path): ?array
     {
         $contents = @file_get_contents($path);
-        if (!is_string($contents)) return null;
+        if (!is_string($contents)) {
+            return null;
+        }
         try {
             $data = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
+
             return is_array($data) ? $data : null;
         } catch (Throwable) {
             return null;

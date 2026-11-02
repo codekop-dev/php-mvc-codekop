@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace System\Queue;
@@ -16,6 +17,7 @@ abstract class Job implements ShouldQueue
     {
         if (is_array($this->backoff)) {
             $index = max(0, $attempt - 1);
+
             return max(0, (int) ($this->backoff[$index] ?? end($this->backoff) ?: 0));
         }
 
