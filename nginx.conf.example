@@ -22,12 +22,17 @@ server {
     autoindex off;
 
     # Folder internal aplikasi tidak boleh diakses dari web.
-    location ~* ^/(?:app|system|storage|database|vendor|\.git|\.agents|\.codex)(?:/|$) {
+    location ~* ^/(?:app|system|storage|database|vendor|tests|docker|\.git|\.agents|\.codex|\.claude)(?:/|$) {
         return 404;
     }
 
     # File tersembunyi dan file konfigurasi/backup tidak boleh diunduh.
     location ~* /\.(?!well-known/) {
+        return 404;
+    }
+
+    # File build/test/dokumentasi repo tidak perlu dilayani web server.
+    location ~* ^/(?:composer\.(?:json|lock)|phpunit\.xml(?:\.dist)?|docker-compose.*\.ya?ml|Dockerfile.*|README\.md|CHANGELOG\.md|AGENTS\.md|nginx\.conf\.example|apache2\.conf\.example)$ {
         return 404;
     }
 

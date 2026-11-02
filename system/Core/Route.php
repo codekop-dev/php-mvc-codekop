@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace System;
 
 use Throwable;
@@ -14,7 +16,9 @@ final class Route
     private static array $prefixStack = [];
     private array $middleware = [];
 
-    private function __construct(private readonly int $index) {}
+    private function __construct(private readonly int $index)
+    {
+    }
 
     public static function get(string $uri, string $action): self
     {
@@ -111,7 +115,9 @@ final class Route
         $previousPrefixes = self::$prefixStack;
         self::$middlewareStack = array_values(array_unique(array_merge($previous, $middleware)));
         $prefix = trim((string) ($options['prefix'] ?? ''), '/');
-        if ($prefix !== '') self::$prefixStack[] = $prefix;
+        if ($prefix !== '') {
+            self::$prefixStack[] = $prefix;
+        }
 
         try {
             $callback();
@@ -134,6 +140,7 @@ final class Route
             'middleware' => self::$middlewareStack,
             'api' => $isApi,
         ];
+
         return new self(array_key_last(self::$routes));
     }
 
@@ -147,72 +154,142 @@ final class Route
         $items = is_array($middleware) ? $middleware : [$middleware];
         self::$routes[$this->index]['middleware'] = array_values(array_unique(array_merge(
             self::$routes[$this->index]['middleware'],
-            $items
+            $items,
         )));
+
         return $this;
     }
 
     public function name(string $name): self
     {
         self::$routes[$this->index]['name'] = $name;
+
         return $this;
     }
 
     public static function match(string $method, string $path): ?array
     {
         foreach (self::$routes as $route) {
-            if ($route['method'] !== strtoupper($method)) continue;
+            if ($route['method'] !== strtoupper($method)) {
+                continue;
+            }
             $parameterNames = [];
             $pattern = preg_replace_callback(
                 '/\{([A-Za-z_][A-Za-z0-9_]*)\}/',
                 static function (array $matches) use (&$parameterNames): string {
                     $parameterNames[] = $matches[1];
+
                     return '([A-Za-z0-9_-]+)';
                 },
-                $route['uri']
+                $route['uri'],
             );
-            if ($pattern === null) continue;
+            if ($pattern === null) {
+                continue;
+            }
 
             $matches = [];
             $expression = '#^' . rtrim($pattern, '/') . '/?$#';
-            if (preg_match($expression, '/' . trim($path, '/'), $matches) !== 1) continue;
+            if (preg_match($expression, '/' . trim($path, '/'), $matches) !== 1) {
+                continue;
+            }
 
             array_shift($matches);
             $parameters = [];
             foreach ($parameterNames as $index => $name) {
                 $parameters[$name] = rawurldecode((string) ($matches[$index] ?? ''));
             }
+
             return [self::action($route['action']), $route['middleware'], $route['api'] ?? false, $parameters];
         }
+
         return null;
+    }
+
+    /**
+     * Method HTTP yang terdaftar untuk path ini (kosong jika path tidak ada).
+     *
+     * @return list<string>
+     */
+    public static function allowedMethods(string $path): array
+    {
+        $methods = [];
+        foreach (self::$routes as $route) {
+            $pattern = preg_replace('/\{[A-Za-z_][A-Za-z0-9_]*\}/', '[A-Za-z0-9_-]+', $route['uri']);
+            if ($pattern !== null
+                && preg_match('#^' . rtrim($pattern, '/') . '/?$#', '/' . trim($path, '/')) === 1) {
+                $methods[] = $route['method'];
+            }
+        }
+
+        return array_values(array_unique($methods));
+    }
+
+    /**
+     * True jika controller@method sudah didaftarkan sebagai route eksplisit.
+     * Aksi seperti ini hanya boleh dicapai lewat route-nya (beserta middleware),
+     * bukan lewat auto-routing /controller/method.
+     */
+    public static function hasAction(string $controller, string $method): bool
+    {
+        foreach (self::$routes as $route) {
+            [$routeController, $routeMethod] = self::action($route['action']);
+            if (strcasecmp($routeController, $controller) === 0 && strcasecmp($routeMethod, $method) === 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Hapus semua route terdaftar (dipakai test).
+     */
+    public static function flush(): void
+    {
+        self::$routes = [];
+        self::$guards = [];
+        self::$middlewareStack = [];
+        self::$prefixStack = [];
     }
 
     public static function allows(array $target): bool
     {
         foreach (($target[1] ?? []) as $name) {
             if (isset(self::$guards[$name])) {
-                if (!call_user_func(self::$guards[$name])) return false;
+                if (!call_user_func(self::$guards[$name])) {
+                    return false;
+                }
                 continue;
             }
 
-            if (!self::runMiddleware((string) $name)) return false;
+            if (!self::runMiddleware((string) $name)) {
+                return false;
+            }
         }
+
         return true;
     }
 
     private static function runMiddleware(string $name): bool
     {
-        if (!preg_match('/^[A-Za-z][A-Za-z0-9_]*$/', $name)) return false;
+        if (!preg_match('/^[A-Za-z][A-Za-z0-9_]*$/', $name)) {
+            return false;
+        }
 
         $class = 'App\\Middleware\\' . $name . 'Middleware';
         $file = ROOTPATH . 'app/Middleware/' . $name . 'Middleware.php';
-        if (!class_exists($class) && is_file($file)) require_once $file;
-        if (!class_exists($class) || !is_subclass_of($class, Middleware::class)) return false;
+        if (!class_exists($class) && is_file($file)) {
+            require_once $file;
+        }
+        if (!class_exists($class) || !is_subclass_of($class, Middleware::class)) {
+            return false;
+        }
 
         try {
             return (new $class())->handle();
         } catch (Throwable $exception) {
             error_log($exception->getMessage());
+
             return false;
         }
     }
@@ -220,6 +297,7 @@ final class Route
     private static function action(string $action): array
     {
         $parts = str_contains($action, '@') ? explode('@', $action, 2) : explode('::', $action, 2);
+
         return [$parts[0] ?? 'Home', $parts[1] ?? 'index'];
     }
 }

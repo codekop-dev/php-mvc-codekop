@@ -6,6 +6,10 @@ Semua perubahan penting pada project ini dicatat di file ini.
 
 ### Added
 
+- PHP CS Fixer (`.php-cs-fixer.dist.php`, standar PSR-12) dengan script
+  `composer cs:check` dan `composer cs:fix`; seluruh kode PHP di `app`, `system`,
+  `tests`, dan `index.php` sudah dirapikan. `app/Views` tidak diformat.
+
 - Memisahkan route ke `app/Routes/web.php` dan `app/Routes/api.php`; `Routes.php`
   kini hanya menjadi aggregator. API mendukung `Route::prefix('api')->group(...)`
   dengan method HTTP biasa, sementara method `apiGet()` lama tetap kompatibel.
@@ -54,6 +58,18 @@ Semua perubahan penting pada project ini dicatat di file ini.
 - Memblokir akses HTTP ke source, dependency, runtime storage, tests, dan file
   konfigurasi internal melalui Apache `.htaccess` dan konfigurasi Nginx.
 - Membatasi eksekusi PHP hanya pada front controller `index.php`.
+- Auto-routing `/controller/method` tidak lagi melewati route eksplisit: aksi
+  yang sudah didaftarkan di `app/Routes` hanya dapat dicapai lewat route dan
+  middleware-nya (404 jika dipanggil langsung), dan path yang terdaftar untuk
+  method HTTP lain membalas `405` dengan header `Allow`. `HEAD` memakai route
+  `GET`.
+- Default `env` kini `production`; mode development diaktifkan eksplisit lewat
+  environment variable `APP_ENV=development` (nilai lain diabaikan).
+  `docker-compose.yml` development menyetel `APP_ENV=development`.
+- `JwtMiddleware` mewajibkan claim `exp`; token tanpa kedaluwarsa ditolak.
+- Memblokir akses web ke `docker/`, `docker-compose*.yml`, `Dockerfile*`,
+  `phpunit.xml`, `.claude/`, `.phpunit.cache/`, dan `.php-cs-fixer*` (Apache dan
+  Nginx), serta menambahkan path tersebut ke `tests/Security/security_smoke.sh`.
 
 ### Changed
 

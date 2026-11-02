@@ -1,14 +1,20 @@
 <?php
+
 declare(strict_types=1);
 use System\Config;
+
 /*
  * Satu sumber konfigurasi aplikasi.
  *
- * Ubah APP_ENV menjadi production saat deploy publik. Constant dibuat untuk
- * menjaga kompatibilitas API lama, tetapi kode baru dapat membaca APP_CONFIG.
+ * Default aman adalah production. Untuk development set environment variable
+ * APP_ENV=development (atau ubah nilai 'env' di bawah). Jangan memakai
+ * development di server publik.
+ * Constant APP_ENV dibuat untuk menjaga kompatibilitas API lama, tetapi kode baru dapat membaca APP_CONFIG.
  */
 $appConfig = [
-    'env' => 'development',
+    'env' => in_array(getenv('APP_ENV'), ['development', 'testing', 'production'], true)
+        ? (string) getenv('APP_ENV')
+        : 'production',
     'timezone' => 'Asia/Jakarta',
     'session' => [
         'name' => 'codekop_session',
@@ -42,14 +48,16 @@ $appConfig = [
     ],
 ];
 
- $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
- $host = $_SERVER['SERVER_NAME'] ?? 'localhost';
- $script = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/'));
- $script = ($script === '.' || $script === '/') ? '' : $script;
- $appConfig['base_url'] = rtrim($scheme . '://' . $host . $script, '/') . '/';
+$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$host = $_SERVER['SERVER_NAME'] ?? 'localhost';
+$script = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/'));
+$script = ($script === '.' || $script === '/') ? '' : $script;
+$appConfig['base_url'] = rtrim($scheme . '://' . $host . $script, '/') . '/';
 
 Config::configure($appConfig);
-if (!defined('APP_CONFIG')) define('APP_CONFIG', Config::all());
+if (!defined('APP_CONFIG')) {
+    define('APP_CONFIG', Config::all());
+}
 
 $legacyConfig = [
     'APP_ENV' => $appConfig['env'],
@@ -63,7 +71,9 @@ $legacyConfig = [
 ];
 
 foreach ($legacyConfig as $constant => $value) {
-    if (!defined($constant)) define($constant, $value);
+    if (!defined($constant)) {
+        define($constant, $value);
+    }
 }
 
 date_default_timezone_set(APP_TIMEZONE);
@@ -75,4 +85,3 @@ ini_set('session.cookie_samesite', SESSION_SAMESITE);
 
 Config::$timeZone = APP_TIMEZONE;
 Config::timeZone();
-?>

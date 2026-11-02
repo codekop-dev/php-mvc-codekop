@@ -5,7 +5,7 @@ Options -Indexes -MultiViews
     Require all denied
 </FilesMatch>
 
-<FilesMatch "^(?:\.env(?:\..*)?|composer\.(?:json|lock)|README\.md|CHANGELOG\.md|AGENTS\.md|nginx\.conf\.example|apache2\.conf\.example)$">
+<FilesMatch "^(?:\.env(?:\..*)?|composer\.(?:json|lock)|phpunit\.xml(?:\.dist)?|docker-compose(?:\..*)?\.ya?ml|Dockerfile.*|\.dockerignore|\.php-cs-fixer.*|README\.md|CHANGELOG\.md|AGENTS\.md|nginx\.conf\.example|apache2\.conf\.example)$">
     Require all denied
 </FilesMatch>
 
@@ -16,8 +16,8 @@ Options -Indexes -MultiViews
 </IfModule>
 
 RewriteEngine On
-RewriteRule ^(?:app|system|storage|vendor|tests)(?:/|$) - [F,L,NC]
-RewriteRule ^(?:\.git|\.github|\.codex|\.agents)(?:/|$) - [F,L,NC]
+RewriteRule ^(?:app|system|storage|vendor|tests|docker)(?:/|$) - [F,L,NC]
+RewriteRule ^(?:\.git|\.github|\.codex|\.agents|\.claude|\.phpunit\.cache)(?:/|$) - [F,L,NC]
 RewriteRule ^(?!index\.php$).*\.php(?:/|$) - [F,L,NC]
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME} !-f

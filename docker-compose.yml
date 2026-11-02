@@ -5,6 +5,9 @@ services:
       dockerfile: docker/php/Dockerfile
     ports:
       - "8080:80"
+    environment:
+      # Docker compose ini hanya untuk development lokal.
+      APP_ENV: development
     volumes:
       # Bind-mount the project for live edits; keep the container's own
       # composer install so a host without vendor/ still works.

@@ -17,6 +17,11 @@ protected_paths=(
     "/composer.lock"
     "/README.md"
     "/.env"
+    "/phpunit.xml"
+    "/docker-compose.yml"
+    "/docker/benchmark/docker-compose.yml"
+    "/.claude/settings.json"
+    "/.agents/"
     "/tests/Security/security_smoke.sh"
 )
 

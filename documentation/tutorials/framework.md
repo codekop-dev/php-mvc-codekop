@@ -25,9 +25,9 @@ Pastikan folder berikut dapat ditulis oleh PHP:
 - `storage/sessions/`
 - `storage/queue/` jika memakai file queue driver
 
-Atur database pada `app/Config/Database.php`. Untuk production, ubah `env`
-menjadi `production` pada `app/Config/Config.php`; jangan memakai development di
-server publik.
+Atur database pada `app/Config/Database.php`. Default `env` adalah
+`production`. Untuk development set environment variable `APP_ENV=development`;
+jangan memakai development di server publik.
 
 ## Alur request
 
@@ -201,6 +201,10 @@ Route::prefix('api')->group(static function (): void {
 Method `get`, `post`, `put`, `patch`, `delete`, dan `options` tetap digunakan
 secara normal. Prefix `api` otomatis membentuk URI `/api/...` dan menandai route
 sebagai API. Method `apiGet()` lama tetap tersedia untuk kompatibilitas.
+
+Aksi yang sudah punya route hanya dapat dicapai lewat route-nya (beserta
+middleware); memanggil `/controller/method` langsung membalas 404, dan method
+HTTP yang tidak terdaftar membalas 405.
 
 Parameter, group, dan resource:
 
@@ -424,7 +428,7 @@ Konfigurasi utama ada di `app/Config/Config.php` dan disinkronkan ke
 
 ```php
 $appConfig = [
-    'env' => 'development',
+    'env' => 'production', // atau APP_ENV=development
     'timezone' => 'Asia/Jakarta',
     'session' => [
         'name' => 'codekop_session',

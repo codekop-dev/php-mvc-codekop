@@ -247,15 +247,13 @@ Pastikan folder berikut dapat ditulis oleh PHP:
 
 Salin konfigurasi database pada app/Config/Database.php sesuai kebutuhan.
 
-Untuk development:
+Default adalah production. Untuk development, set environment variable
+`APP_ENV=development` (atau `testing`) pada web server/PHP-FPM/shell:
 
-    app/Config/Config.php
-        'env' => 'development'
+    export APP_ENV=development   # contoh untuk shell/CLI
 
-Untuk production:
-
-    app/Config/Config.php
-        'env' => 'production'
+Tanpa variable tersebut aplikasi berjalan sebagai production. Nilai selain
+`development`, `testing`, dan `production` diabaikan.
 
 Jangan memakai development di server publik.
 
@@ -265,7 +263,7 @@ Sumber konfigurasi aplikasi berada di app/Config/Config.php. Konfigurasi
 berbentuk array, lalu disinkronkan otomatis ke System\Config.
 
     $appConfig = [
-        'env' => 'development',
+        'env' => 'production', // atau APP_ENV=development
         'timezone' => 'Asia/Jakarta',
         'session' => [
             'name' => 'codekop_session',
@@ -290,6 +288,9 @@ berbentuk array, lalu disinkronkan otomatis ke System\Config.
             'max_attempts' => 3,
         ],
     ];
+
+JWT: `JwtMiddleware` hanya menerima HS256 dan mewajibkan claim `exp` (claim `nbf`
+dicek bila ada). Token tanpa `exp` ditolak; `jwt_secret` kosong menolak semua token.
 
 Runtime accessor:
 
@@ -342,6 +343,14 @@ file modul yang di-require dari sana.
 Semua method HTTP biasa (`get`, `post`, `put`, `patch`, `delete`, `options`)
 di dalam prefix `api` otomatis memiliki URI `/api/...` dan diperlakukan sebagai
 response API. `apiGet()` dan method API lama tetap tersedia untuk kompatibilitas.
+
+Aksi controller yang sudah didaftarkan sebagai route hanya dapat diakses lewat
+route tersebut, sehingga middleware (Auth, Csrf, Jwt, dan lainnya) tidak dapat
+dilewati dengan memanggil `/controller/method` atau mengganti method HTTP. Path
+yang dipanggil dengan method yang tidak terdaftar membalas `405 Method Not
+Allowed` beserta header `Allow`. Controller yang belum punya route tetap dapat
+dicapai lewat auto-routing `/controller/method`; daftarkan route eksplisit
+untuk setiap aksi yang butuh middleware.
 
 Parameter route tersedia melalui request:
 
@@ -964,6 +973,8 @@ berada di `tests/Security` karena membutuhkan Apache atau Nginx aktif.
 Jalankan seluruh test:
 
     composer test
+    composer cs:check   # cek gaya kode (PHP CS Fixer, PSR-12)
+    composer cs:fix     # rapikan kode otomatis
     vendor/bin/phpunit
 
 ## Verifikasi project
